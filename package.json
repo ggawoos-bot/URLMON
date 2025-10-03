@@ -2,11 +2,11 @@
   "name": "website-monitor",
   "version": "1.0.0",
   "description": "웹사이트 접속 모니터링 도구",
-  "main": "server.js",
+  "main": "index.html",
   "scripts": {
-    "dev": "node server.js",
-    "start": "node server.js",
-    "build": "echo 'No build process needed for static files'"
+    "build": "echo 'No build process needed'",
+    "start": "node api/server.js",
+    "dev": "node api/server.js"
   },
   "keywords": [
     "website",

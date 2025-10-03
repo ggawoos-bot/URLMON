@@ -4,15 +4,45 @@ const path = require('path');
 const cors = require('cors');
 
 const app = express();
-const PORT = 3001;
 
 // 미들웨어
 app.use(cors());
 app.use(express.json());
-app.use(express.static('.'));
 
 // sites.json 파일 경로
-const sitesFilePath = path.join(__dirname, 'sites.json');
+const sitesFilePath = '/tmp/sites.json';
+
+// 초기 sites.json 파일 생성
+if (!fs.existsSync(sitesFilePath)) {
+    const initialData = {
+        sites: [
+            {
+                id: 1,
+                name: "Google",
+                url: "https://www.google.com",
+                enabled: true
+            },
+            {
+                id: 2,
+                name: "금연서비스 통합정보시스템",
+                url: "https://nosmk.khepi.or.kr",
+                enabled: true
+            },
+            {
+                id: 3,
+                name: "금연두드림 홈페이지",
+                url: "https://nosmk.khepi.or.kr/nsk/ntcc/index.do",
+                enabled: true
+            }
+        ]
+    };
+    try {
+        fs.writeFileSync(sitesFilePath, JSON.stringify(initialData, null, 2), 'utf8');
+        console.log('Initial sites.json created');
+    } catch (error) {
+        console.error('Failed to create initial sites.json:', error);
+    }
+}
 
 // 사이트 목록 조회
 app.get('/api/sites', (req, res) => {
@@ -35,12 +65,10 @@ app.post('/api/sites', (req, res) => {
     try {
         const { sites } = req.body;
         
-        // 유효성 검사
         if (!Array.isArray(sites)) {
             return res.status(400).json({ error: '잘못된 데이터 형식입니다.' });
         }
 
-        // sites.json 파일에 저장
         const data = { sites };
         fs.writeFileSync(sitesFilePath, JSON.stringify(data, null, 2), 'utf8');
         
@@ -51,10 +79,9 @@ app.post('/api/sites', (req, res) => {
     }
 });
 
-// 서버 시작
-app.listen(PORT, () => {
-    console.log(`서버가 http://localhost:${PORT}에서 실행 중입니다.`);
-    console.log(`API 엔드포인트:`);
-    console.log(`  GET  /api/sites - 사이트 목록 조회`);
-    console.log(`  POST /api/sites - 사이트 목록 저장`);
+// 모든 요청을 처리
+app.all('*', (req, res) => {
+    res.status(404).json({ error: 'Not Found' });
 });
+
+module.exports = app;
