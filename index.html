@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>웹사이트 모니터링 도구</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌐 금연 시스템 실시간 모니터링</h1>
+            <p>등록된 웹사이트의 상태를 실시간 확인</p>
+        </header>
+
+        <div class="sites-section">
+            <div class="sites-header">
+                <h3>등록된 사이트 목록</h3>
+                <button id="addSiteBtn" class="add-site-btn">+ 사이트 추가</button>
+            </div>
+            <div class="sites-list" id="sitesList">
+                <!-- 사이트 목록이 여기에 동적으로 생성됩니다 -->
+            </div>
+        </div>
+
+        <div class="monitoring-controls">
+            <button id="startAllMonitoring" class="monitor-btn">전체 모니터링 시작</button>
+            <button id="stopAllMonitoring" class="monitor-btn stop" disabled>전체 모니터링 중지</button>
+        </div>
+
+        <div class="status-section">
+            <h3>실시간 상태</h3>
+            <div class="status-grid" id="statusGrid">
+                <!-- 각 사이트의 상태가 여기에 표시됩니다 -->
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h3>설정</h3>
+            <div class="setting-item">
+                <label for="intervalSelect">체크 간격:</label>
+                <select id="intervalSelect">
+                    <option value="5000">5초</option>
+                    <option value="10000" selected>10초</option>
+                    <option value="30000">30초</option>
+                    <option value="60000">1분</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="history-section">
+            <h3>모니터링 기록</h3>
+            <div class="history-list" id="historyList">
+                <p class="no-history">아직 기록이 없습니다</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 사이트 추가 모달 -->
+    <div id="addSiteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>사이트 추가</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="siteName">사이트명:</label>
+                    <input type="text" id="siteName" placeholder="예: Google" required>
+                </div>
+                <div class="form-group">
+                    <label for="siteUrl">URL:</label>
+                    <input type="url" id="siteUrl" placeholder="https://example.com" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="saveSiteBtn" class="save-btn">저장</button>
+                <button id="cancelSiteBtn" class="cancel-btn">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="function.js"></script>
+</body>
+</html>
