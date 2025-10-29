@@ -9,6 +9,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Vercel 서버리스 함수를 위한 포트 설정
+const PORT = process.env.PORT || 3000;
+
 // sites.json 파일 경로
 const sitesFilePath = '/tmp/sites.json';
 const defaultSitesPath = path.join(__dirname, '..', 'sites.json');  // 루트 디렉토리의 sites.json
@@ -109,4 +112,12 @@ app.all('*', (req, res) => {
     res.status(404).json({ error: 'Not Found' });
 });
 
+// Vercel 서버리스 함수용 export
 module.exports = app;
+
+// 로컬 개발용 서버 시작 (Vercel에서는 실행되지 않음)
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+}
