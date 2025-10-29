@@ -62,7 +62,7 @@ if (!fs.existsSync(sitesFilePath)) {
 }
 
 // 사이트 목록 조회
-app.get('/api/sites', (req, res) => {
+app.get('/sites', (req, res) => {
     try {
         // /tmp/sites.json이 없으면 루트 sites.json에서 다시 로드
         if (!fs.existsSync(sitesFilePath)) {
@@ -89,7 +89,7 @@ app.get('/api/sites', (req, res) => {
 });
 
 // 사이트 목록 저장
-app.post('/api/sites', (req, res) => {
+app.post('/sites', (req, res) => {
     try {
         const { sites } = req.body;
         
@@ -113,6 +113,7 @@ app.all('*', (req, res) => {
 });
 
 // Vercel 서버리스 함수용 export
+// Vercel이 Express 앱을 자동으로 처리할 수 있도록 export
 module.exports = app;
 
 // 로컬 개발용 서버 시작 (Vercel에서는 실행되지 않음)
