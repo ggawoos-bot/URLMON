@@ -34,6 +34,18 @@ if (!fs.existsSync(sitesFilePath)) {
                         name: "Google",
                         url: "https://www.google.com",
                         enabled: true
+                    },
+                    {
+                        id: 2,
+                        name: "금연서비스 통합정보시스템",
+                        url: "https://nosmk.khepi.or.kr",
+                        enabled: true
+                    },
+                    {
+                        id: 3,
+                        name: "금연두드림 홈페이지",
+                        url: "https://nosmk.khepi.or.kr/nsk/ntcc/index.do",
+                        enabled: true
                     }
                 ]
             };
