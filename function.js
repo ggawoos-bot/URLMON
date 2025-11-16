@@ -27,13 +27,13 @@ class WebsiteMonitor {
     }
 
     bindEvents() {
-        this.startAllMonitoringBtn.addEventListener('click', () => this.startAllMonitoring());
-        this.stopAllMonitoringBtn.addEventListener('click', () => this.stopAllMonitoring());
+        this.startAllMonitoringBtn.addEventListener('click', () => this.startAllMonitoring()); 
+        this.stopAllMonitoringBtn.addEventListener('click', () => this.stopAllMonitoring());   
         this.addSiteBtn.addEventListener('click', () => this.openAddSiteModal());
         this.saveSiteBtn.addEventListener('click', () => this.saveSite());
         this.cancelSiteBtn.addEventListener('click', () => this.closeAddSiteModal());
         this.closeBtn.addEventListener('click', () => this.closeAddSiteModal());
-        
+
         // 모달 외부 클릭 시 닫기
         window.addEventListener('click', (e) => {
             if (e.target === this.modal) {
@@ -44,7 +44,7 @@ class WebsiteMonitor {
 
     async loadSites() {
         try {
-            const response = await fetch('/api/sites');
+            const response = await fetch('/sites');
             const data = await response.json();
             this.sites = data.sites || [];
             this.nextId = this.sites.length > 0 ? Math.max(...this.sites.map(site => site.id)) + 1 : 1;
@@ -59,78 +59,48 @@ class WebsiteMonitor {
 
     async loadSitesFromLocalStorage() {
         try {
-            const savedData = localStorage.getItem('websiteMonitorSites');
-            if (savedData) {
-                const data = JSON.parse(savedData);
-                this.sites = data.sites || [];
+            const savedSites = localStorage.getItem('websiteMonitorSites');
+            if (savedSites) {
+                this.sites = JSON.parse(savedSites);
                 this.nextId = this.sites.length > 0 ? Math.max(...this.sites.map(site => site.id)) + 1 : 1;
                 this.renderSites();
                 this.renderStatusGrid();
             } else {
-                // 로컬 스토리지가 비어있으면 sites.json 파일을 직접 읽기
-                try {
-                    const response = await fetch('/sites.json');
-                    if (response.ok) {
-                        const data = await response.json();
-                        this.sites = data.sites || [];
-                        this.nextId = this.sites.length > 0 ? Math.max(...this.sites.map(site => site.id)) + 1 : 1;
-                        // 로컬 스토리지에 저장
-                        localStorage.setItem('websiteMonitorSites', JSON.stringify({ sites: this.sites }));
-                        console.log(`sites.json에서 ${this.sites.length}개의 사이트를 로드했습니다.`);
-                    } else {
-                        console.error('sites.json 파일을 찾을 수 없습니다.');
-                        this.sites = [];
-                    }
-                } catch (fetchError) {
-                    console.error('sites.json 파일 로드 실패:', fetchError);
-                    this.sites = [];
-                }
+                // 기본 사이트 목록
+                this.sites = [
+                    { id: 1, name: "Google", url: "https://www.google.com", enabled: true },
+                    { id: 2, name: "금연 성공 지원 센터", url: "https://nosmk.khepi.or.kr", enabled: true },
+                    { id: 3, name: "금연 길라잡이 서비스", url: "https://nosmk.khepi.or.kr/nsk/ntcc/index.do", enabled: true }
+                ];
+                this.nextId = 4;
                 this.renderSites();
                 this.renderStatusGrid();
             }
         } catch (error) {
             console.error('로컬 스토리지에서 사이트 로드 실패:', error);
-            this.sites = [];
-            this.renderSites();
-        }
-    }
-
-    async saveSites() {
-        try {
-            const response = await fetch('/api/sites', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ sites: this.sites })
-            });
-
-            if (!response.ok) {
-                throw new Error('서버 저장 실패');
-            }
-
-            console.log('사이트 목록이 서버에 저장되었습니다.');
-        } catch (error) {
-            console.error('서버 저장 실패, 로컬 스토리지에 저장:', error);
-            // 서버 저장 실패 시 로컬 스토리지에 백업 저장
-            localStorage.setItem('websiteMonitorSites', JSON.stringify({ sites: this.sites }));
         }
     }
 
     renderSites() {
+        if (this.sites.length === 0) {
+            this.sitesList.innerHTML = '<p class="no-sites">등록된 사이트가 없습니다.</p>';
+            return;
+        }
+
         this.sitesList.innerHTML = this.sites.map(site => `
-            <div class="site-item ${!site.enabled ? 'disabled' : ''}" data-id="${site.id}">
-                <div class="site-name">${site.name}</div>
-                <div class="site-url">${site.url}</div>
-                <div class="site-controls">
-                    <button class="toggle-btn ${!site.enabled ? 'disabled' : ''}" 
-                            onclick="monitor.toggleSite(${site.id})">
+            <div class="site-item ${site.enabled ? 'enabled' : 'disabled'}">
+                <div class="site-info">
+                    <h3>${site.name}</h3>
+                    <p>${site.url}</p>
+                </div>
+                <div class="site-actions">
+                    <button class="btn-toggle" onclick="monitor.toggleSite(${site.id})">
                         ${site.enabled ? '비활성화' : '활성화'}
                     </button>
-                    <button class="check-btn" onclick="monitor.checkSingleSite(${site.id})">
-                        상태 확인
+                    <button class="btn-check" onclick="monitor.checkSingleSite(${site.id})">
+                        확인
                     </button>
-                    <button class="delete-btn" onclick="monitor.deleteSite(${site.id})">
+                    <button class="btn-delete" onclick="monitor.deleteSite(${site.id})">
                         삭제
                     </button>
                 </div>
@@ -139,12 +109,19 @@ class WebsiteMonitor {
     }
 
     renderStatusGrid() {
-        this.statusGrid.innerHTML = this.sites.filter(site => site.enabled).map(site => `
-            <div class="status-card" id="status-${site.id}">
-                <h4>${site.name}</h4>
-                <p><span class="status-indicator"></span>상태 확인 대기 중</p>
-                <p>URL: ${site.url}</p>
-                <p>마지막 확인: -</p>
+        if (this.sites.length === 0) {
+            this.statusGrid.innerHTML = '<p class="no-sites">등록된 사이트가 없습니다.</p>';
+            return;
+        }
+
+        this.statusGrid.innerHTML = this.sites.map(site => `
+            <div id="status-${site.id}" class="status-card ${site.enabled ? 'enabled' : 'disabled'}">
+                <div class="status-header">
+                    <h4>${site.name}</h4>
+                    <span class="status-indicator ${site.enabled ? 'enabled' : 'disabled'}"></span>
+                </div>
+                <p>${site.enabled ? '활성화됨' : '비활성화됨'}</p>
+                <p>마지막 확인: 확인되지 않음</p>
             </div>
         `).join('');
     }
@@ -165,19 +142,19 @@ class WebsiteMonitor {
         const url = this.siteUrlInput.value.trim();
 
         if (!name || !url) {
-            alert('사이트명과 URL을 모두 입력해주세요.');
+            alert('사이트 이름과 URL을 모두 입력해주세요.');
             return;
         }
 
         if (!this.isValidUrl(url)) {
-            alert('올바른 URL 형식을 입력해주세요. (예: https://example.com)');
+            alert('올바른 URL을 입력해주세요 (http:// 또는 https://로 시작).');
             return;
         }
 
         const newSite = {
             id: this.nextId++,
-            name: name,
-            url: url,
+            name,
+            url,
             enabled: true
         };
 
@@ -186,48 +163,19 @@ class WebsiteMonitor {
         this.renderSites();
         this.renderStatusGrid();
         this.closeAddSiteModal();
-        
-        // 성공 메시지
-        this.showMessage('사이트가 성공적으로 추가되었습니다!', 'success');
-    }
-
-    showMessage(message, type = 'info') {
-        // 간단한 알림 메시지 표시
-        const messageDiv = document.createElement('div');
-        messageDiv.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            border-radius: 8px;
-            color: white;
-            font-weight: 600;
-            z-index: 10000;
-            transition: all 0.3s ease;
-            background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#17a2b8'};
-        `;
-        messageDiv.textContent = message;
-        document.body.appendChild(messageDiv);
-
-        // 3초 후 자동 제거
-        setTimeout(() => {
-            messageDiv.style.opacity = '0';
-            setTimeout(() => {
-                if (messageDiv.parentNode) {
-                    messageDiv.parentNode.removeChild(messageDiv);
-                }
-            }, 300);
-        }, 3000);
+        this.showMessage('사이트가 추가되었습니다.', 'success');
     }
 
     async deleteSite(id) {
-        if (confirm('정말로 이 사이트를 삭제하시겠습니까?')) {
-            this.sites = this.sites.filter(site => site.id !== id);
-            await this.saveSites();
-            this.renderSites();
-            this.renderStatusGrid();
-            this.showMessage('사이트가 삭제되었습니다.', 'success');
+        if (!confirm('정말로 이 사이트를 삭제하시겠습니까?')) {
+            return;
         }
+
+        this.sites = this.sites.filter(site => site.id !== id);
+        await this.saveSites();
+        this.renderSites();
+        this.renderStatusGrid();
+        this.showMessage('사이트가 삭제되었습니다.', 'success');
     }
 
     async toggleSite(id) {
@@ -246,18 +194,18 @@ class WebsiteMonitor {
         if (!site || !site.enabled) return;
 
         this.updateSiteStatus(site.id, 'checking', '확인 중...', '');
-        
+
         const startTime = Date.now();
-        
+
         try {
             const response = await this.simpleFetch(site.url, 5000);
             const endTime = Date.now();
             const responseTime = endTime - startTime;
 
-            // no-cors 모드에서는 status가 항상 0이므로, 
-            // 응답이 성공적으로 받아졌으면 접속 가능으로 간주
+            // no-cors 모드에서는 status가 0으로 반환될 수 있음
+            // 실제로는 성공한 것으로 간주하고 온라인 상태로 표시
             if (response.status === 0 || response.status >= 200) {
-                this.updateSiteStatus(site.id, 'online', '접속 가능', responseTime);
+                this.updateSiteStatus(site.id, 'online', '온라인 상태', responseTime);
                 this.addToHistory(site.name, site.url, 'online', 'OK', responseTime);
             } else {
                 this.updateSiteStatus(site.id, 'error', `서버 오류: ${response.status}`, responseTime);
@@ -266,21 +214,21 @@ class WebsiteMonitor {
         } catch (error) {
             const endTime = Date.now();
             const responseTime = endTime - startTime;
-            
+
             let status = 'offline';
-            let message = '접속 불가';
-            
+            let message = '오프라인 상태';
+
             if (error.name === 'TimeoutError') {
-                message = '접속 시간 초과';
+                message = '응답 시간 초과';
             } else if (error.name === 'TypeError' && error.message.includes('CORS')) {
                 status = 'error';
                 message = 'CORS 오류';
             } else if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
                 message = '네트워크 오류';
             }
-            
+
             this.updateSiteStatus(site.id, status, message, responseTime);
-            this.addToHistory(site.name, site.url, status, error.message, responseTime);
+            this.addToHistory(site.name, site.url, status, error.message, responseTime);       
         }
     }
 
@@ -294,20 +242,20 @@ class WebsiteMonitor {
 
         statusCard.className = `status-card ${status}`;
         indicator.className = `status-indicator ${status}`;
-        statusText.innerHTML = `<span class="status-indicator ${status}"></span>${message}`;
-        
+        statusText.innerHTML = `<span class="status-indicator ${status}"></span>${message}`;   
+
         if (responseTime) {
             lastCheck.textContent = `마지막 확인: ${new Date().toLocaleString('ko-KR')} (${responseTime}ms)`;
         } else {
-            lastCheck.textContent = `마지막 확인: ${new Date().toLocaleString('ko-KR')}`;
+            lastCheck.textContent = `마지막 확인: ${new Date().toLocaleString('ko-KR')}`;    
         }
     }
 
     async startAllMonitoring() {
         const enabledSites = this.sites.filter(site => site.enabled);
-        
+
         if (enabledSites.length === 0) {
-            alert('모니터링할 활성화된 사이트가 없습니다.');
+            alert('활성화된 사이트가 없습니다.');
             return;
         }
 
@@ -316,11 +264,11 @@ class WebsiteMonitor {
         this.stopAllMonitoringBtn.disabled = false;
 
         const interval = parseInt(this.intervalSelect.value);
-        
-        // 즉시 모든 사이트 체크
+
+        // 즉시 모든 사이트 확인
         enabledSites.forEach(site => this.checkSingleSite(site.id));
-        
-        // 주기적으로 체크
+
+        // 주기적으로 확인
         this.monitoringInterval = setInterval(() => {
             enabledSites.forEach(site => this.checkSingleSite(site.id));
         }, interval);
@@ -340,7 +288,7 @@ class WebsiteMonitor {
     async simpleFetch(url, timeout) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), timeout);
-        
+
         try {
             const response = await fetch(url, {
                 method: 'GET',
@@ -370,6 +318,49 @@ class WebsiteMonitor {
         }
     }
 
+    async saveSites() {
+        try {
+            const response = await fetch('/sites', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ sites: this.sites })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('사이트 목록이 서버에 저장되었습니다:', data);
+            } else {
+                throw new Error('서버 저장 실패');
+            }
+        } catch (error) {
+            console.error('서버 저장 실패, 로컬 스토리지에 저장:', error);
+            localStorage.setItem('websiteMonitorSites', JSON.stringify(this.sites));
+        }
+    }
+
+    showMessage(message, type = 'info') {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${type}`;
+        messageDiv.textContent = message;
+        messageDiv.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 5px;
+            color: white;
+            z-index: 1000;
+            background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#17a2b8'};
+        `;
+        document.body.appendChild(messageDiv);
+
+        setTimeout(() => {
+            messageDiv.remove();
+        }, 3000);
+    }
+
     addToHistory(siteName, url, status, details, responseTime) {
         const historyItem = {
             siteName,
@@ -381,8 +372,8 @@ class WebsiteMonitor {
         };
 
         this.history.unshift(historyItem);
-        
-        // 최대 50개 항목만 유지
+
+        // 최근 50개만 유지
         if (this.history.length > 50) {
             this.history = this.history.slice(0, 50);
         }
@@ -392,7 +383,7 @@ class WebsiteMonitor {
 
     updateHistoryDisplay() {
         if (this.history.length === 0) {
-            this.historyList.innerHTML = '<p class="no-history">아직 기록이 없습니다</p>';
+            this.historyList.innerHTML = '<p class="no-history">기록이 없습니다</p>'; 
             return;
         }
 
@@ -407,7 +398,7 @@ class WebsiteMonitor {
                 </div>
                 <div class="history-time">
                     ${item.timestamp.toLocaleString('ko-KR')}
-                    ${item.responseTime ? `<br>응답시간: ${item.responseTime}ms` : ''}
+                    ${item.responseTime ? `<br>응답 시간: ${item.responseTime}ms` : ''}       
                 </div>
             </div>
         `).join('');
@@ -415,14 +406,14 @@ class WebsiteMonitor {
 
     getStatusText(status) {
         const statusMap = {
-            'online': '접속 가능',
-            'offline': '접속 불가',
+            'online': '온라인 상태',
+            'offline': '오프라인 상태',
             'error': '오류'
         };
         return statusMap[status] || status;
     }
 
-    // 페이지 로드 시 이전 기록 복원
+    // 로컬 스토리지에서 기존 기록 불러오기
     loadHistory() {
         const savedHistory = localStorage.getItem('websiteMonitorHistory');
         if (savedHistory) {
@@ -444,15 +435,15 @@ class WebsiteMonitor {
     }
 }
 
-// 전역 변수로 모니터 인스턴스 생성
+// 페이지 로드 시 웹사이트 모니터 객체 생성
 let monitor;
 
-// 페이지 로드 시 모니터 초기화
-document.addEventListener('DOMContentLoaded', () => {
+// DOM 로드 완료 시 초기화
+document.addEventListener('DOMContentLoaded', () => {       
     monitor = new WebsiteMonitor();
     monitor.loadHistory();
-    
-    // 기록이 변경될 때마다 저장
+
+    // 기록 저장 자동화
     const originalAddToHistory = monitor.addToHistory.bind(monitor);
     monitor.addToHistory = function(...args) {
         originalAddToHistory(...args);
