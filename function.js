@@ -53,20 +53,41 @@ class WebsiteMonitor {
         } catch (error) {
             console.error('사이트 목록 로드 실패:', error);
             // 서버 연결 실패 시 로컬 스토리지에서 로드
-            this.loadSitesFromLocalStorage();
+            await this.loadSitesFromLocalStorage();
         }
     }
 
-    loadSitesFromLocalStorage() {
+    async loadSitesFromLocalStorage() {
         try {
             const savedData = localStorage.getItem('websiteMonitorSites');
             if (savedData) {
                 const data = JSON.parse(savedData);
                 this.sites = data.sites || [];
                 this.nextId = this.sites.length > 0 ? Math.max(...this.sites.map(site => site.id)) + 1 : 1;
+                this.renderSites();
+                this.renderStatusGrid();
+            } else {
+                // 로컬 스토리지가 비어있으면 sites.json 파일을 직접 읽기
+                try {
+                    const response = await fetch('/sites.json');
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.sites = data.sites || [];
+                        this.nextId = this.sites.length > 0 ? Math.max(...this.sites.map(site => site.id)) + 1 : 1;
+                        // 로컬 스토리지에 저장
+                        localStorage.setItem('websiteMonitorSites', JSON.stringify({ sites: this.sites }));
+                        console.log(`sites.json에서 ${this.sites.length}개의 사이트를 로드했습니다.`);
+                    } else {
+                        console.error('sites.json 파일을 찾을 수 없습니다.');
+                        this.sites = [];
+                    }
+                } catch (fetchError) {
+                    console.error('sites.json 파일 로드 실패:', fetchError);
+                    this.sites = [];
+                }
+                this.renderSites();
+                this.renderStatusGrid();
             }
-            this.renderSites();
-            this.renderStatusGrid();
         } catch (error) {
             console.error('로컬 스토리지에서 사이트 로드 실패:', error);
             this.sites = [];
