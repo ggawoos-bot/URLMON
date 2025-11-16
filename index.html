@@ -3,23 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>웹사이트 모니터링 도구</title>
+    <title>웹사이트 상태 모니터링</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🌐 금연 시스템 실시간 모니터링</h1>
-            <p>등록된 웹사이트의 상태를 실시간 확인</p>
+            <h1>금연 웹사이트 상태 모니터링</h1>
+            <p>금연 관련 웹사이트의 상태를 실시간 확인</p>
         </header>
 
         <div class="sites-section">
             <div class="sites-header">
-                <h3>등록된 사이트 목록</h3>
+                <h3>관리 웹사이트 목록</h3>
                 <button id="addSiteBtn" class="add-site-btn">+ 사이트 추가</button>
             </div>
             <div class="sites-list" id="sitesList">
-                <!-- 사이트 목록이 여기에 동적으로 생성됩니다 -->
+                <!-- 사이트 목록이 자바스크립트로 동적으로 생성됩니다 -->
             </div>
         </div>
 
@@ -29,21 +29,21 @@
         </div>
 
         <div class="status-section">
-            <h3>실시간 상태</h3>
+            <h3>상태 상태</h3>
             <div class="status-grid" id="statusGrid">
-                <!-- 각 사이트의 상태가 여기에 표시됩니다 -->
+                <!-- 각 사이트의 상태가 자바스크립트로 표시됩니다 -->
             </div>
         </div>
 
         <div class="settings-section">
             <h3>설정</h3>
             <div class="setting-item">
-                <label for="intervalSelect">체크 간격:</label>
+                <label for="intervalSelect">확인 주기:</label>
                 <select id="intervalSelect">
-                    <option value="5000">5초</option>
-                    <option value="10000" selected>10초</option>
-                    <option value="30000">30초</option>
-                    <option value="60000">1분</option>
+                    <option value="5000">5분</option>
+                    <option value="10000" selected>10분</option>
+                    <option value="30000">30분</option>
+                    <option value="60000">1시간</option>
                 </select>
             </div>
         </div>
@@ -51,7 +51,7 @@
         <div class="history-section">
             <h3>모니터링 기록</h3>
             <div class="history-list" id="historyList">
-                <p class="no-history">아직 기록이 없습니다</p>
+                <p class="no-history">최근 기록이 없습니다</p>
             </div>
         </div>
     </div>
@@ -65,7 +65,7 @@
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label for="siteName">사이트명:</label>
+                    <label for="siteName">사이트 이름:</label>
                     <input type="text" id="siteName" placeholder="예: Google" required>
                 </div>
                 <div class="form-group">
