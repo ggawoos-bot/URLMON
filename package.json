@@ -1,7 +1,7 @@
 {
   "name": "website-monitor",
   "version": "1.0.0",
-  "description": "금연 시스템 실시간 모니터링 도구",
+  "description": "웹사이트 상태 모니터링 및 금연 지원 애플리케이션",
   "main": "index.html",
   "scripts": {
     "build": "echo 'No build process needed'",
