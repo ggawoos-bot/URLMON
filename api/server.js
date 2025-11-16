@@ -13,16 +13,10 @@ app.use(express.json());
 const PORT = process.env.PORT || 3000;
 
 // sites.json 파일 경로
-const sitesFilePath = path.join(__dirname, '..', 'data', 'sites.json');
+const sitesFilePath = '/tmp/sites.json';
 const defaultSitesPath = path.join(__dirname, '..', 'sites.json');  // 프로젝트 루트의 sites.json
 
 // 초기 sites.json 파일 생성 및 기본값 로드
-// 데이터 디렉토리 생성
-const dataDir = path.dirname(sitesFilePath);
-if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
-}
-
 if (!fs.existsSync(sitesFilePath)) {
     try {
         let initialData;
